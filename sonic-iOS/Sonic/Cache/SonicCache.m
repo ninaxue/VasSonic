@@ -461,10 +461,22 @@ typedef NS_ENUM(NSUInteger, SonicCacheType) {
     return cacheItem;
 }
 
+- (NSString *)getSonicHeaderETagWithHeaders:(NSDictionary *)headers
+{
+    NSString *keyETag = [headers objectForKey:[SonicHeaderKeyCustomeETag lowercaseString]];
+    if (keyETag && [keyETag isKindOfClass:[NSString class]] && keyETag.length > 0) {
+        // do nothing
+    } else {
+        keyETag = [SonicHeaderKeyETag lowercaseString];
+    }
+    
+    return [headers objectForKey:keyETag];
+}
+
 - (NSDictionary *)createConfigFromResponseHeaders:(NSDictionary *)headers
 {
     //Etag,template-tag
-    NSString *eTag = headers[SonicHeaderKeyETag];
+    NSString *eTag = [self getSonicHeaderETagWithHeaders:headers];
     NSString *templateTag = headers[SonicHeaderKeyTemplate];
     NSTimeInterval timeNow = (long)[[NSDate date ]timeIntervalSince1970]*1000;
     NSString *localRefresh = [@(timeNow) stringValue];
@@ -475,6 +487,8 @@ typedef NS_ENUM(NSUInteger, SonicCacheType) {
     eTag = eTag.length > 0? eTag:@"";
     
     NSDictionary *cfgDict = @{
+                              // SonicHeaderKeyCustomeETag:[self getCustomSonicHeaderKeyETagWithHeaders:headers]
+                              // [self getCustomSonicHeaderKeyETagWithHeaders:headers]:eTag
                               SonicHeaderKeyETag:eTag,
                               SonicHeaderKeyTemplate:templateTag,
                               kSonicLocalRefreshTime:localRefresh,
